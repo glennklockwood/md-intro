@@ -43,9 +43,12 @@ def velocity_verlet( pos, vel, accel, mass, dt ):
 
     # Velocity Verlet, part I
     for i in range(len(pos)):
-        for j in range(3):
-            vel[i,j] += 0.5 * dt * accel[i,j]
-            pos[i,j] += dt * vel[i,j]
+        vel[i,0] += 0.5 * dt * accel[i,0]
+        vel[i,1] += 0.5 * dt * accel[i,1]
+        vel[i,2] += 0.5 * dt * accel[i,2]
+        pos[i,0] += dt * vel[i,0]
+        pos[i,1] += dt * vel[i,1]
+        pos[i,2] += dt * vel[i,2]
 
     # Calculate energies and forces on each atom in this new configuration.
     # Note that we loop over pairs only once and use Newton's third law to
@@ -70,9 +73,12 @@ def velocity_verlet( pos, vel, accel, mass, dt ):
 
     # Velocity Verlet, part II
     for i in range(len(pos)):
-        for j in range(3):
-            accel[i,j] = force[i,j] / mass[i]
-            vel[i,j] += 0.5 * dt * accel[i,j]
+        accel[i,0] = force[i,0] / mass[i]
+        accel[i,1] = force[i,1] / mass[i]
+        accel[i,2] = force[i,2] / mass[i]
+        vel[i,0] += 0.5 * dt * accel[i,0]
+        vel[i,1] += 0.5 * dt * accel[i,1]
+        vel[i,2] += 0.5 * dt * accel[i,2]
 
 def calculate_force_energy_lj( r ):
     """
@@ -98,12 +104,15 @@ def print_xyz( pos ):
     Print out the current position of every atom in the standard XYZ format.
     This output can then be fed into a visualization program like VMD.
     """
-    sys.stdout.write("%d\n\n" % len(pos))
+    print "%d" % len(pos)
+    print ""
     for i in range(len(pos)):
-        sys.stdout.write( "  Ar " )
-        for j in range(3):
-            sys.stdout.write(  " %10.6f " % (pos[i,j]*1.0e8) )
-        sys.stdout.write( "\n" )
+        print "  %2s  %10.6f %10.6f %10.6f" % (
+            "Ar",
+            pos[i,0] * 1.0e8,
+            pos[i,1] * 1.0e8,
+            pos[i,2] * 1.0e8
+        )
 
 if __name__ == '__main__':
     main()
