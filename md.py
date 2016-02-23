@@ -100,7 +100,7 @@ def print_xyz( pos ):
     """
     sys.stdout.write("%d\n\n" % len(pos))
     for i in range(len(pos)):
-        sys.stdout.write( "  O " )
+        sys.stdout.write( "  Ar " )
         for j in range(3):
             sys.stdout.write(  " %10.6f " % (pos[i,j]*1.0e8) )
         sys.stdout.write( "\n" )
