@@ -3,7 +3,6 @@
 """
 
 import math
-import argparse
 
 import numpy as np
 
@@ -112,14 +111,18 @@ def load_xyz(filename):
             atom in xyz file
     """
     with open(filename, "r") as xyzfile:
-        num_atoms = int(xyzfile.readline())
-        xyzfile.readline()
-        positions = np.zeros((num_atoms, 3))
-        types = []
-        for i in range(num_atoms):
-            atom_type, x, y, z = xyzfile.readline().strip().split()
-            types.append(atom_type.lower())
-            positions[i, :] = [float(x), float(y), float(z)]
+        while True:
+            try:
+                num_atoms = int(xyzfile.readline())
+            except ValueError:
+                break
+            xyzfile.readline()
+            positions = np.zeros((num_atoms, 3))
+            types = []
+            for i in range(num_atoms):
+                atom_type, x, y, z = xyzfile.readline().strip().split()
+                types.append(atom_type.lower())
+                positions[i, :] = [float(x), float(y), float(z)]
 
         return types, positions * 1.0e-8
 
