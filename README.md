@@ -6,4 +6,4 @@ to molecular dynamics I am creating.  The code intends to be as simple and
 easily understood as possible so that students can explore various optimizations
 firsthand.
 
-Glenn K. Lockwood, February 2016
+Glenn K. Lockwood, September 2021
