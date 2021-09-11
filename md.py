@@ -35,7 +35,7 @@ def main():
     for i in range(20000):
         velocity_verlet(pos, vel, accel, mass, types, 1.0e-15)
         if (i % 100) == 0:
-            print_xyz(pos)
+            print_xyz(types, pos)
 
 def velocity_verlet(pos, vel, accel, mass, types, dt):
     """Calculates new atomic positions using Velocity Verlet.
@@ -48,23 +48,17 @@ def velocity_verlet(pos, vel, accel, mass, types, dt):
     energy = np.zeros(mass.shape)
 
     # Velocity Verlet, part I
-    for i in range(len(pos)):
-        vel[i, 0] += 0.5 * dt * accel[i, 0]
-        vel[i, 1] += 0.5 * dt * accel[i, 1]
-        vel[i, 2] += 0.5 * dt * accel[i, 2]
-        pos[i, 0] += dt * vel[i, 0]
-        pos[i, 1] += dt * vel[i, 1]
-        pos[i, 2] += dt * vel[i, 2]
+    for i in range(pos.shape[0]):
+        vel[i, :] += 0.5 * dt * accel[i, :]
+        pos[i, :] += dt * vel[i, :]
 
     # Calculate energies and forces on each atom in this new configuration.
     # Note that we loop over pairs only once and use Newton's third law to
     # update each atom per pair.
-    for i in range(0, len(pos) - 1):
-        for j in range(i+1, len(pos)):
-            dx = pos[j, 0] - pos[i, 0]
-            dy = pos[j, 1] - pos[i, 1]
-            dz = pos[j, 2] - pos[i, 2]
-            r = math.sqrt(dx*dx + dy*dy + dz*dz)
+    for i in range(0, pos.shape[0] - 1):
+        for j in range(i+1, pos.shape[0]):
+            dpos = pos[j, :] - pos[i, :]
+            r = math.sqrt(np.dot(dpos, dpos))
 
             epsilon = LENNARD_JONES_PARAMS[types[i]][types[j]]["epsilon"]
             sigma = LENNARD_JONES_PARAMS[types[i]][types[j]]["sigma"]
@@ -72,21 +66,13 @@ def velocity_verlet(pos, vel, accel, mass, types, dt):
 
             energy[i] += energy_ij
             energy[j] += energy_ij
-            force[i, 0] -= force_ij * dx / r
-            force[i, 1] -= force_ij * dy / r
-            force[i, 2] -= force_ij * dz / r
-            force[j, 0] += force_ij * dx / r
-            force[j, 1] += force_ij * dy / r
-            force[j, 2] += force_ij * dz / r
+            force[i, :] -= force_ij * dpos / r
+            force[j, :] += force_ij * dpos / r
 
     # Velocity Verlet, part II
-    for i in range(len(pos)):
-        accel[i, 0] = force[i, 0] / mass[i]
-        accel[i, 1] = force[i, 1] / mass[i]
-        accel[i, 2] = force[i, 2] / mass[i]
-        vel[i, 0] += 0.5 * dt * accel[i, 0]
-        vel[i, 1] += 0.5 * dt * accel[i, 1]
-        vel[i, 2] += 0.5 * dt * accel[i, 2]
+    for i in range(pos.shape[0]):
+        accel[i, :] = force[i, :] / mass[i]
+        vel[i, :] += 0.5 * dt * accel[i, :]
 
 def calculate_force_energy_lj(r, epsilon, sigma):
     """Calculates energy and force between two atoms.
@@ -102,21 +88,18 @@ def calculate_force_energy_lj(r, epsilon, sigma):
 
     return force_ij, energy_ij
 
-def print_xyz(pos):
+def print_xyz(types, pos):
     """Prints atom positions in XYZ format.
 
     Print out the current position of every atom in the standard XYZ format.
     This output can then be fed into a visualization program like VMD.
     """
-    print("%d" % len(pos))
+    print(pos.shape[0])
     print("")
-    for i in range(len(pos)):
+    for i in range(pos.shape[0]):
         print("  {:2s}  {:10.6f} {:10.6f} {:10.6f}".format(
-            "Ar",
-            pos[i, 0] * 1.0e8,
-            pos[i, 1] * 1.0e8,
-            pos[i, 2] * 1.0e8
-        ))
+            types[i].title(),
+            *(pos[i, :] * 1.0e8)))
 
 def load_xyz(filename):
     """Loads an XYZ file.
