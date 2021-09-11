@@ -8,16 +8,21 @@ from md import load_xyz
 
 import numpy as np
 
-def calculate_rdf(pos, r_min, r_max, dr):
+def calculate_rdf(types, pos, r_min, r_max, dr, itype=None, jtype=None):
     """Calculates the RDF
 
-    Does not distinguish between different pair types.
+    Does not consider periodic boundaries which is problematic when calculating
+    the RDF of all atoms because the average system density is undefined and
+    edge atoms will have a different local structure than bulk atoms.
 
     Args:
+        types (list): Element type of each atom as a string
         pos (numpy.array): Each row is an atom, columns are x, y, z
-        r_min (float): lower limit of RDF we wish to calculate, in cm
-        r_max (float): upper limit of RDF we wish to calculate, in cm
-        dr (float): width of each RDF bin, in cm
+        r_min (float): Lower limit of RDF we wish to calculate, in cm
+        r_max (float): Upper limit of RDF we wish to calculate, in cm
+        dr (float): Width of each RDF bin, in cm
+        itype (str or None): Limit center atom (r=0) to this element
+        itype (str or None): Limit pairs to this element
 
     Returns:
         tuple: Two numpy.array types.  First contains r values corresponding to
@@ -34,7 +39,11 @@ def calculate_rdf(pos, r_min, r_max, dr):
 
     # count number of atoms in each bin
     for i in range(0, pos.shape[0] - 1):
+        if itype and types[i] != itype:
+            continue
         for j in range(i + 1, pos.shape[0]):
+            if jtype and types[j] != jtype:
+                continue
             dpos = pos[j, :] - pos[i, :]
             r = math.sqrt(np.dot(dpos, dpos))
             nbin = int((r - r_min) // dr)
@@ -59,7 +68,7 @@ def main():
     r_max = 10.0e-8 # in cm
     dr = 0.25e-8 # in cm
 
-    rdf_x, rdf = calculate_rdf(pos, r_min, r_max, dr)
+    rdf_x, rdf = calculate_rdf(types, pos, r_min, r_max, dr)
 
     # print rdf
     print("{:12} {:12s}".format("r (cm)", "g(r)"))
